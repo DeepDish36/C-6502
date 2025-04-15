@@ -37,6 +37,6 @@ If you want to help develop the project, visit the repository and follow the con
 This project is licensed under **GNU Affero General Public License v3.0**, ensuring that any improvements remain public and that the original author is credited.
 
 ---
-<p align="end">
-  <img src="ico.png" alt="Ícone do C-6502" width="180">
-</p>
+<b>
+  <p align=end>Developed by <i>DeepDish36</i> | © 2025</p>
+</b>

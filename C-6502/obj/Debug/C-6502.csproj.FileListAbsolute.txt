@@ -1,0 +1,10 @@
+C:\Users\g0mes\Desktop\C-6502\C-6502\bin\Debug\C-6502.exe.config
+C:\Users\g0mes\Desktop\C-6502\C-6502\bin\Debug\C-6502.exe
+C:\Users\g0mes\Desktop\C-6502\C-6502\bin\Debug\C-6502.pdb
+C:\Users\g0mes\Desktop\C-6502\C-6502\obj\Debug\C-6502.csproj.AssemblyReference.cache
+C:\Users\g0mes\Desktop\C-6502\C-6502\obj\Debug\C_6502.frmMain.resources
+C:\Users\g0mes\Desktop\C-6502\C-6502\obj\Debug\C_6502.Properties.Resources.resources
+C:\Users\g0mes\Desktop\C-6502\C-6502\obj\Debug\C-6502.csproj.GenerateResource.cache
+C:\Users\g0mes\Desktop\C-6502\C-6502\obj\Debug\C-6502.csproj.CoreCompileInputs.cache
+C:\Users\g0mes\Desktop\C-6502\C-6502\obj\Debug\C-6502.exe
+C:\Users\g0mes\Desktop\C-6502\C-6502\obj\Debug\C-6502.pdb

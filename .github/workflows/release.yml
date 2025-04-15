@@ -3,31 +3,37 @@ name: Build and Release
 on:
   push:
     branches:
-      - main  # Executa o processo quando há um commit na branch principal
+      - main
 
 jobs:
   build:
-    runs-on: windows-latest  # Usa um ambiente Windows para compilar
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '9.0.203'  # Ajusta para a versão do teu projeto
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.1
 
-      - name: Build application
-        run: dotnet build --configuration Release
+      - name: Build solution
+        run: msbuild C-6502.sln /p:Configuration=Release
 
       - name: Find compiled .exe
         run: |
           Get-ChildItem -Path . -Filter "*.exe" -Recurse | ForEach-Object { Write-Output $_.FullName }
 
-      - name: Upload to GitHub Release
+      - name: Create Release Tag
+        id: create_tag
+        run: |
+          $date = Get-Date -Format "yyyyMMdd-HHmmss"
+          echo "TAG_NAME=release-$date" >> $env:GITHUB_ENV
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: C-6502/bin/Release/C-6502.exe  # Atualiza com o caminho correto do teu executável
+          tag_name: ${{ env.TAG_NAME }}
+          name: Build ${{ env.TAG_NAME }}
+          files: C-6502/bin/Release/C-6502.exe  # ajusta o caminho exato se for diferente
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

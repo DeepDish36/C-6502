@@ -28,6 +28,6 @@ jobs:
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: C:\Users\g0mes\Desktop\C-6502\C-6502\bin\Release\C-6502.exe  # Atualiza com o caminho correto do teu executável
+          files: C-6502/bin/Release/C-6502.exe  # Atualiza com o caminho correto do teu executável
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -14,7 +14,7 @@ namespace C_6502
             Console.Title = "C-6502 Emulator v1.0";
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("================================");
-            Console.WriteLine("      C-6502 Emulator v1.0      ");
+            Console.WriteLine("      C-6502 Emulator v1.0     ");
             Console.WriteLine("================================");
             Console.ResetColor();
             Console.WriteLine();

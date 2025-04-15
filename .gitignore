@@ -1,6 +1,4 @@
-# Diretórios de Build
-bin/
-obj/
+
 
 # Arquivos do Visual Studio
 .vs/

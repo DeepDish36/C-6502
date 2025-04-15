@@ -1,0 +1,33 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main  # Executa o processo quando há um commit na branch principal
+
+jobs:
+  build:
+    runs-on: windows-latest  # Usa um ambiente Windows para compilar
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.203'  # Ajusta para a versão do teu projeto
+
+      - name: Build application
+        run: dotnet build --configuration Release
+
+      - name: Find compiled .exe
+        run: |
+          Get-ChildItem -Path . -Filter "*.exe" -Recurse | ForEach-Object { Write-Output $_.FullName }
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: C:\Users\g0mes\Desktop\C-6502\C-6502\bin\Release\C-6502.exe  # Atualiza com o caminho correto do teu executável
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

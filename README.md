@@ -1,8 +1,4 @@
-# C-6502 Emulator
-
-<p align="center">
-  <img src="caminho_para_o_icon.png" alt="Ícone do C-6502" width="150">
-</p>
+# C-6502 
 
 [🇵🇹 Português](#português) | [🇺🇸 English](#english)
 
@@ -27,7 +23,7 @@ Este projeto está licenciado sob **GNU Affero General Public License v3.0**, ga
 
 ## 🇺🇸 **English**
 ### About the Project
-**C-6502** is an educational emulator for the 6502 microprocessor, designed to assist students and enthusiasts in learning low-level programming.
+**C-6502** is an emulator for the 6502 microprocessor, designed to assist students and enthusiasts in learning low-level programming.
 
 ### 📥 Download
 The latest version can be downloaded [here](https://github.com/DeepDish36/C-6502/releases/latest).
@@ -41,3 +37,6 @@ If you want to help develop the project, visit the repository and follow the con
 This project is licensed under **GNU Affero General Public License v3.0**, ensuring that any improvements remain public and that the original author is credited.
 
 ---
+<p align="end">
+  <img src="ico.png" alt="Ícone do C-6502" width="180">
+</p>

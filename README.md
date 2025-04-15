@@ -4,7 +4,7 @@
 
 ---
 
-## 🇵🇹 **Português**
+## <h2 id="português">🇵🇹 **Português**</h2>
 ### Sobre o Projeto
 O **C-6502** é um emulador do microprocessador 6502, desenvolvido para auxiliar estudantes e entusiastas da programação de baixo nível.
 
@@ -21,7 +21,7 @@ Este projeto está licenciado sob **GNU Affero General Public License v3.0**, ga
 
 ---
 
-## 🇺🇸 **English**
+## <h2 id="english">🇺🇸 **English**</h2>
 ### About the Project
 **C-6502** is an emulator for the 6502 microprocessor, designed to assist students and enthusiasts in learning low-level programming.
 

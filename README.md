@@ -6,7 +6,7 @@
 
 ## <h2 id="português">🇵🇹 **Português**</h2>
 ### Sobre o Projeto
-O **C-6502** é um emulador do microprocessador 6502, desenvolvido para auxiliar estudantes e entusiastas da programação de baixo nível.<br/>
+O **C-6502** é um emulador do microprocessador 6502, desenvolvido para auxiliar estudantes e entusiastas da programação de baixo nível.<br/><br/>
 O projeto foi inspirado nas ferramentas disponíveis em [easy6502](https://skilldrick.github.io/easy6502/) e [txt3.de](txt3.de), adaptando e expandindo as suas funcionalidades para uma nova abordagem educacional.
 ### 📥 Download
 A versão mais recente pode ser descarregada [aqui](https://github.com/DeepDish36/C-6502/releases/latest).
@@ -23,7 +23,7 @@ Este projeto está licenciado sob **GNU Affero General Public License v3.0**, ga
 
 ## <h2 id="english">🇺🇸 **English**</h2>
 ### About the Project
-**C-6502** is an emulator for the 6502 microprocessor, designed to assist students and enthusiasts in learning low-level programming.
+**C-6502** is an emulator for the 6502 microprocessor, designed to assist students and enthusiasts in learning low-level programming.<br/><br/>
 The project was inspired by the tools available on [easy6502](https://skilldrick.github.io/easy6502/) and [txt3.de](txt3.de), adapting and expanding their functionalities for a new educational approach.
 ### 📥 Download
 The latest version can be downloaded [here](https://github.com/DeepDish36/C-6502/releases/latest).

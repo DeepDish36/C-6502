@@ -321,16 +321,27 @@ namespace C_6502
             ushort pc = (ushort)programStart;
             ushort end = (ushort)(programStart + programLength);
 
-            while (pc < end)
+            int maxInstructions = 1000; // Limite de segurança
+            int count = 0;
+
+            while (pc < end && count < maxInstructions)
             {
+                count++;
+
                 try
                 {
+                    ushort currentPC = pc; // Guarda o PC antes de avançar
+
                     byte opcode = cpu.ReadByte(pc);
                     string line = $"${pc:X4}    {opcode:X2}";
 
                     string dis = cpu.DisassembleSingle(ref pc);
-                    line = line.PadRight(18) + dis;
 
+                    // Se o PC não mudou, forçamos avanço para evitar loop infinito
+                    if (pc == currentPC)
+                        pc++;
+
+                    line = line.PadRight(18) + dis;
                     disasm.AppendLine(line);
 
                     if (opcode == 0x00) break; // BRK
@@ -340,6 +351,11 @@ namespace C_6502
                     disasm.AppendLine($"${pc:X4}    ??   [Invalid opcode]");
                     pc++;
                 }
+            }
+
+            if (count >= maxInstructions)
+            {
+                disasm.AppendLine("\n[Interrompido após 1000 instruções — possível loop infinito]");
             }
 
             MessageBox.Show(disasm.ToString(), "Disassembly");

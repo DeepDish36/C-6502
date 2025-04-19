@@ -5,10 +5,13 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 
 namespace C_6502
 {
@@ -25,12 +28,19 @@ namespace C_6502
 
         private byte[] assembledBytes;
 
+        private HashSet<int> errorLines = new HashSet<int>();
+
         public frmMain()
         {
             InitializeComponent();
             this.AllowDrop = true;
             this.DragEnter += FrmMain_DragEnter;
             this.DragDrop += FrmMain_DragDrop;
+
+            txtCode.TextChanged += txtCode_TextChanged;
+            txtCode.VScroll += txtCode_VScroll;
+            UpdateLineNumbers();
+            lineNumbers.Paint += lineNumbers_Paint;
 
             txtCode.TextChanged += (s, e) =>
             {
@@ -46,6 +56,67 @@ namespace C_6502
             };
             cpu = new CPU6502();
             cpu.OnVideoWrite = AtualizarPixel;
+        }
+
+        private void lineNumbers_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.Clear(lineNumbers.BackColor);
+
+            int firstLineIndex = txtCode.GetCharIndexFromPosition(new Point(0, 0));
+            int firstLine = txtCode.GetLineFromCharIndex(firstLineIndex);
+
+            int lastLineIndex = txtCode.GetCharIndexFromPosition(new Point(0, txtCode.ClientSize.Height));
+            int lastLine = txtCode.GetLineFromCharIndex(lastLineIndex);
+
+            for (int i = firstLine; i <= lastLine; i++)
+            {
+                Point p = txtCode.GetPositionFromCharIndex(txtCode.GetFirstCharIndexFromLine(i));
+                int y = p.Y + 2;
+
+                string lineNum = (i + 1).ToString();
+                e.Graphics.DrawString(lineNum, txtCode.Font, Brushes.Gray, new PointF(0, y));
+
+                if (errorLines.Contains(i))
+                {
+                    int radius = 6;
+                    int cx = lineNumbers.Width - radius - 8; // Ajuste para alinhar o círculo
+                    int cy = y + (txtCode.Font.Height - radius) / 2; // Centraliza o círculo verticalmente
+
+                    using (Brush b = new SolidBrush(Color.Red))
+                    {
+                        e.Graphics.FillEllipse(b, cx, cy, radius, radius);
+                    }
+                }
+            }
+        }
+
+        private void ValidateCode()
+        {
+            errorLines.Clear();
+            string[] lines = txtCode.Lines;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string raw = lines[i].Trim();
+
+                // Ignorar linhas vazias e comentários
+                if (string.IsNullOrWhiteSpace(raw)) continue;
+                if (raw.StartsWith(";")) continue;
+                if (raw.EndsWith(":")) continue;
+
+                string line = raw.ToUpper();
+                bool valid = false;
+
+                if (line.StartsWith("LDA #$") && line.Length >= 7) valid = true;
+                else if (line.StartsWith("STA $") && line.Length >= 6) valid = true;
+                else if (line.StartsWith("JMP ")) valid = true;
+                else if (line == "TAX" || line == "INX" || line == "BRK") valid = true;
+
+                if (!valid)
+                    errorLines.Add(i);
+            }
+
+            lineNumbers.Invalidate(); // redesenha os números com os erros
         }
 
         private void FrmMain_DragEnter(object sender, DragEventArgs e)
@@ -104,6 +175,33 @@ namespace C_6502
         }
 
 
+        private void txtCode_VScroll(object sender, EventArgs e)
+        {
+            SyncScroll();
+            UpdateLineNumbers();
+        }
+
+        private void SyncScroll()
+        {
+            int d = GetScrollPos(txtCode.Handle, SB_VERT);
+            SetScrollPos(lineNumbers.Handle, SB_VERT, d, true);
+            SendMessage(lineNumbers.Handle, WM_VSCROLL, (IntPtr)(SB_THUMBPOSITION + 0x10000 * d), IntPtr.Zero);
+        }
+
+        // WinAPI Imports para sincronizar scroll
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        static extern int GetScrollPos(IntPtr hWnd, int nBar);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        static extern int SetScrollPos(IntPtr hWnd, int nBar, int nPos, bool bRedraw);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        static extern int SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+
+        const int WM_VSCROLL = 0x0115;
+        const int SB_VERT = 1;
+        const int SB_THUMBPOSITION = 4;
+
         private void frmMain_Load(object sender, EventArgs e)
         {
             Debugger.PrintHeader();
@@ -131,6 +229,96 @@ namespace C_6502
 
             string flags = Convert.ToString(cpu.Status, 2).PadLeft(8, '0');
             lblFlags.Text = $"{flags}";
+        }
+
+        private void UpdateLineNumbers()
+        {
+            string[] lines = txtCode.Lines;
+            lineNumbers.Clear();
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                // Verifica se a linha está na lista de erros
+                bool isErrorLine = errorLines.Contains(i);
+                string marker = isErrorLine ? "🔴 " : ""; // Adiciona o marcador apenas se houver erro
+                lineNumbers.AppendText(marker + (i + 1).ToString() + Environment.NewLine);
+            }
+
+            // Corrige o caso de linhas vazias (para não aparecer "1" e "2" quando não há texto)
+            if (lines.Length == 1 && string.IsNullOrWhiteSpace(lines[0]))
+            {
+                lineNumbers.Clear();
+            }
+        }
+
+        private void txtCode_VScroll_ManualSync(object sender, EventArgs e)
+        {
+            int d = GetScrollPos(txtCode.Handle, SB_VERT);
+            SendMessage(lineNumbers.Handle, WM_VSCROLL, (IntPtr)(SB_THUMBPOSITION + 0x10000 * d), IntPtr.Zero);
+        }
+
+        private void HighlightSyntax()
+        {
+            int selStart = txtCode.SelectionStart;
+            int selLength = txtCode.SelectionLength;
+
+            txtCode.SuspendLayout();
+
+            txtCode.SelectAll();
+            txtCode.SelectionColor = Color.Black;
+
+            string[] lines = txtCode.Lines;
+            int index = 0;
+
+            foreach (string line in lines)
+            {
+                int lineStart = index;
+
+                // Comentário
+                int commentIndex = line.IndexOf(';');
+                if (commentIndex >= 0)
+                {
+                    txtCode.Select(lineStart + commentIndex, line.Length - commentIndex);
+                    txtCode.SelectionColor = Color.DarkGray;
+                }
+
+                // Label
+                if (line.Trim().EndsWith(":"))
+                {
+                    txtCode.Select(lineStart, line.Length);
+                    txtCode.SelectionColor = Color.Orange;
+                }
+
+                // Palavras (tokens)
+                string[] tokens = line.Split(' ', '\t', ',');
+                int offset = 0;
+
+                foreach (string token in tokens)
+                {
+                    if (token == "") continue;
+
+                    string upper = token.ToUpper();
+
+                    if (Assembler6502.opcodes.ContainsKey(upper + "_IMM") || Assembler6502.opcodes.ContainsKey(upper + "_ABS") || Assembler6502.opcodes.ContainsKey(upper))
+                    {
+                        txtCode.Select(lineStart + offset, token.Length);
+                        txtCode.SelectionColor = Color.Blue;
+                    }
+                    else if (token.StartsWith("#$") || token.StartsWith("$"))
+                    {
+                        txtCode.Select(lineStart + offset, token.Length);
+                        txtCode.SelectionColor = Color.ForestGreen;
+                    }
+
+                    offset += token.Length + 1;
+                }
+
+                index += line.Length + 1;
+            }
+
+            txtCode.Select(selStart, selLength);
+            txtCode.SelectionColor = Color.Black;
+            txtCode.ResumeLayout();
         }
 
         private void btnAssemble_Click(object sender, EventArgs e)
@@ -402,6 +590,10 @@ namespace C_6502
 
         private void txtCode_TextChanged(object sender, EventArgs e)
         {
+            UpdateLineNumbers();
+            HighlightSyntax();
+            ValidateCode();
+
             modificacoesPorSalvar = true;
             btnAssemble.Enabled = true;
 

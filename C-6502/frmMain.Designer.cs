@@ -42,7 +42,6 @@
             this.lblY = new System.Windows.Forms.Label();
             this.lblX = new System.Windows.Forms.Label();
             this.lblAccumulator = new System.Windows.Forms.Label();
-            this.txtCode = new System.Windows.Forms.TextBox();
             this.btnAssemble = new System.Windows.Forms.Button();
             this.btnRun = new System.Windows.Forms.Button();
             this.btnReset = new System.Windows.Forms.Button();
@@ -55,6 +54,8 @@
             this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportBinaryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.runToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aseembleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -64,8 +65,8 @@
             this.hexdumpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.disassembleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exportBinaryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.lineNumbers = new System.Windows.Forms.RichTextBox();
+            this.txtCode = new System.Windows.Forms.RichTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pctScreen)).BeginInit();
             this.grpStuff.SuspendLayout();
             this.MenuStrip.SuspendLayout();
@@ -210,16 +211,6 @@
             this.tooltipDica.SetToolTip(this.lblAccumulator, "Registo\tNome\tDescrição\r\nA\tAcumulador\tUsado para operações aritméticas/lógicas e t" +
         "ransferência de dados");
             // 
-            // txtCode
-            // 
-            this.txtCode.Font = new System.Drawing.Font("MS Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtCode.Location = new System.Drawing.Point(12, 56);
-            this.txtCode.Multiline = true;
-            this.txtCode.Name = "txtCode";
-            this.txtCode.Size = new System.Drawing.Size(526, 383);
-            this.txtCode.TabIndex = 12;
-            this.txtCode.TextChanged += new System.EventHandler(this.txtCode_TextChanged);
-            // 
             // btnAssemble
             // 
             this.btnAssemble.Font = new System.Drawing.Font("MS Gothic", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -335,6 +326,23 @@
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
+            // saveAsToolStripMenuItem
+            // 
+            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
+            this.saveAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.S)));
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.saveAsToolStripMenuItem.Text = "Save As";
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
+            // 
+            // exportBinaryToolStripMenuItem
+            // 
+            this.exportBinaryToolStripMenuItem.Name = "exportBinaryToolStripMenuItem";
+            this.exportBinaryToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
+            this.exportBinaryToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
+            this.exportBinaryToolStripMenuItem.Text = "Export Binary";
+            this.exportBinaryToolStripMenuItem.Click += new System.EventHandler(this.exportBinaryToolStripMenuItem_Click);
+            // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
@@ -404,35 +412,46 @@
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "Help";
             // 
-            // saveAsToolStripMenuItem
+            // lineNumbers
             // 
-            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.S)));
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
-            this.saveAsToolStripMenuItem.Text = "Save As";
-            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
+            this.lineNumbers.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.lineNumbers.Enabled = false;
+            this.lineNumbers.Font = new System.Drawing.Font("MS Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lineNumbers.Location = new System.Drawing.Point(12, 56);
+            this.lineNumbers.Name = "lineNumbers";
+            this.lineNumbers.ReadOnly = true;
+            this.lineNumbers.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
+            this.lineNumbers.Size = new System.Drawing.Size(28, 383);
+            this.lineNumbers.TabIndex = 20;
+            this.lineNumbers.Text = "";
             // 
-            // exportBinaryToolStripMenuItem
+            // txtCode
             // 
-            this.exportBinaryToolStripMenuItem.Name = "exportBinaryToolStripMenuItem";
-            this.exportBinaryToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
-            this.exportBinaryToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
-            this.exportBinaryToolStripMenuItem.Text = "Export Binary";
-            this.exportBinaryToolStripMenuItem.Click += new System.EventHandler(this.exportBinaryToolStripMenuItem_Click);
+            this.txtCode.AcceptsTab = true;
+            this.txtCode.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.txtCode.Font = new System.Drawing.Font("MS Gothic", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtCode.Location = new System.Drawing.Point(36, 56);
+            this.txtCode.Name = "txtCode";
+            this.txtCode.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
+            this.txtCode.Size = new System.Drawing.Size(502, 383);
+            this.txtCode.TabIndex = 21;
+            this.txtCode.Text = "";
+            this.txtCode.VScroll += new System.EventHandler(this.txtCode_VScroll);
+            this.txtCode.TextChanged += new System.EventHandler(this.txtCode_TextChanged);
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(780, 548);
+            this.Controls.Add(this.txtCode);
+            this.Controls.Add(this.lineNumbers);
             this.Controls.Add(this.txtLog);
             this.Controls.Add(this.btnDisassemble);
             this.Controls.Add(this.btnHexDump);
             this.Controls.Add(this.btnReset);
             this.Controls.Add(this.btnRun);
             this.Controls.Add(this.btnAssemble);
-            this.Controls.Add(this.txtCode);
             this.Controls.Add(this.pctScreen);
             this.Controls.Add(this.grpStuff);
             this.Controls.Add(this.MenuStrip);
@@ -463,7 +482,6 @@
         private System.Windows.Forms.Button btnStep;
         private System.Windows.Forms.Button btnJumpTo;
         private System.Windows.Forms.GroupBox grpStuff;
-        private System.Windows.Forms.TextBox txtCode;
         private System.Windows.Forms.Button btnAssemble;
         private System.Windows.Forms.Button btnRun;
         private System.Windows.Forms.Button btnReset;
@@ -492,6 +510,8 @@
         private System.Windows.Forms.ToolStripMenuItem resetToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exportBinaryToolStripMenuItem;
+        private System.Windows.Forms.RichTextBox lineNumbers;
+        private System.Windows.Forms.RichTextBox txtCode;
     }
 }
 

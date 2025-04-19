@@ -8,7 +8,7 @@ namespace C_6502
 {
     public class Assembler6502
     {
-        private static readonly Dictionary<string, byte> dictionary = new Dictionary<string, byte>
+        public static readonly Dictionary<string, byte> opcodes = new Dictionary<string, byte>
         {
             { "JMP_ABS", 0x4C },
             //{ "JMP_IND", 0x6C },
@@ -34,7 +34,7 @@ namespace C_6502
             { "BRK", 0x00 },
             { "STA_ABS", 0x8D }
         };
-        private static readonly Dictionary<string, byte> opcodes = dictionary;
+        private static readonly Dictionary<string, byte> opcode = opcodes;
 
         public static byte[] Assemble(string code)
         {

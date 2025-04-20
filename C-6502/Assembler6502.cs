@@ -10,30 +10,52 @@ namespace C_6502
     {
         public static readonly Dictionary<string, byte> opcodes = new Dictionary<string, byte>
         {
-            { "JMP_ABS", 0x4C },
-            //{ "JMP_IND", 0x6C },
-            //{ "LDA_ABS", 0xAD },
-            //{ "STA_ABS", 0x8D },
-            //{ "LDA_ZP", 0xA5 },
-            //{ "STA_ZP", 0x85 },
-            //{ "LDA_IMM", 0xA9 },
-            //{ "STA_IMM", 0x8D },
-            //{ "JMP_REL", 0x90 },
-            //{ "JMP_ZP", 0xB5 },
-            //{ "LDA_ZPX", 0xB5 },
-            //{ "STA_ZPX", 0x95 },
-            //{ "LDA_ABY", 0xB9 },
-            //{ "STA_ABY", 0x99 },
-            //{ "LDA_ABX", 0xBD },
-            //{ "STA_ABX", 0x9D },
-            //{ "LDA_IMM", 0xA9 },
-            //{ "STA_IMM", 0x8D },
-            { "LDA_IMM", 0xA9 },
-            { "TAX", 0xAA },
-            { "INX", 0xE8 },
+            // Implied / Relative
             { "BRK", 0x00 },
-            { "STA_ABS", 0x8D }
+            { "RTI", 0x40 },
+            { "RTS", 0x60 },
+            { "BPL_REL", 0x10 },
+            { "BMI_REL", 0x30 },
+            { "BVC_REL", 0x50 },
+            { "BVS_REL", 0x70 },
+            { "BCC_REL", 0x90 },
+            { "BCS_REL", 0xB0 },
+            { "BNE_REL", 0xD0 },
+            { "BEQ_REL", 0xF0 },
+
+            // Absolute
+            { "JSR_ABS", 0x20 },
+            { "STA_ABS", 0x8D },
+            { "LDA_ABS", 0xAD },
+
+            // Immediate
+            { "LDY_IMM", 0xA0 },
+            { "CPY_IMM", 0xC0 },
+            { "CPX_IMM", 0xE0 },
+            { "LDX_IMM", 0xA2 },
+            { "LDA_IMM", 0xA9 },
+
+            // (Indirect, X)
+            { "ORA_X_IND", 0x01 },
+            { "AND_X_IND", 0x21 },
+            { "EOR_X_IND", 0x41 },
+            { "ADC_X_IND", 0x61 },
+            { "STA_X_IND", 0x81 },
+            { "LDA_X_IND", 0xA1 },
+            { "CMP_X_IND", 0xC1 },
+            { "SBC_X_IND", 0xE1 },
+
+            // (Indirect), Y
+            { "ORA_IND_Y", 0x11 },
+            { "AND_IND_Y", 0x31 },
+            { "EOR_IND_Y", 0x51 },
+            { "ADC_IND_Y", 0x71 },
+            { "STA_IND_Y", 0x91 },
+            { "LDA_IND_Y", 0xB1 },
+            { "CMP_IND_Y", 0xD1 },
+            { "SBC_IND_Y", 0xF1 }
         };
+
         private static readonly Dictionary<string, byte> opcode = opcodes;
 
         public static byte[] Assemble(string code)
@@ -45,12 +67,12 @@ namespace C_6502
 
             int currentAddress = 0;
 
-            // 1ª PASSAGEM: identificar labels e contar bytes
+            // 1ª PASSAGEM — identificar labels e calcular endereços
             foreach (var raw in lines)
             {
                 string line = raw.Trim();
 
-                // Ignora comentários
+                // Ignorar comentários
                 int commentIndex = line.IndexOf(';');
                 if (commentIndex >= 0)
                     line = line.Substring(0, commentIndex);
@@ -68,63 +90,80 @@ namespace C_6502
                 else
                 {
                     instructions.Add((line, currentAddress));
-
-                    if (line.StartsWith("LDA #$"))
-                        currentAddress += 2;
-                    else if (line.StartsWith("STA $"))
-                        currentAddress += 3;
-                    else if (line.StartsWith("JMP "))
-                        currentAddress += 3;
-                    else if (line == "TAX" || line == "INX" || line == "BRK")
-                        currentAddress += 1;
-                    else
-                        throw new Exception($"Instrução desconhecida: {line}");
+                    currentAddress += EstimateInstructionSize(line);
                 }
             }
 
-            // 2ª PASSAGEM: montar instruções
+            // 2ª PASSAGEM — gerar código
             foreach (var (line, _) in instructions)
             {
-                if (line.StartsWith("LDA #$"))
-                {
-                    string val = line.Substring(6);
-                    output.Add(opcodes["LDA_IMM"]);
-                    output.Add(Convert.ToByte(val, 16));
-                }
-                else if (line.StartsWith("STA $"))
-                {
-                    string addr = line.Substring(5);
-                    ushort address = Convert.ToUInt16(addr, 16);
-                    output.Add(opcodes["STA_ABS"]);
-                    output.Add((byte)(address & 0xFF));
-                    output.Add((byte)(address >> 8));
-                }
-                else if (line.StartsWith("JMP "))
-                {
-                    string label = line.Substring(4).Trim();
-                    if (!labels.ContainsKey(label))
-                        throw new Exception($"Label não encontrado: {label}");
+                string[] parts = line.Split(new[] { ' ', '\t' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                string mnemonic = parts[0];
+                string operand = parts.Length > 1 ? parts[1].Trim() : "";
 
-                    int addr = labels[label] + 0x0600; // memória base
-                    output.Add(opcodes["JMP_ABS"]);
-                    output.Add((byte)(addr & 0xFF));
-                    output.Add((byte)(addr >> 8));
-                }
-                else if (line == "TAX")
+                string mode = GetAddressingMode(operand);
+                string key = mnemonic + (string.IsNullOrEmpty(mode) ? "" : "_" + mode);
+
+                if (!opcodes.ContainsKey(key))
+                    throw new Exception($"Instrução desconhecida ou não suportada: {key}");
+
+                output.Add(opcodes[key]);
+
+                // Argumentos
+                switch (mode)
                 {
-                    output.Add(opcodes["TAX"]);
-                }
-                else if (line == "INX")
-                {
-                    output.Add(opcodes["INX"]);
-                }
-                else if (line == "BRK")
-                {
-                    output.Add(opcodes["BRK"]);
+                    case "IMM": // ex: #$01
+                        output.Add(Convert.ToByte(operand.Substring(2), 16));
+                        break;
+
+                    case "ABS": // ex: $0200
+                        ushort addr = Convert.ToUInt16(operand.Substring(1), 16);
+                        output.Add((byte)(addr & 0xFF));
+                        output.Add((byte)(addr >> 8));
+                        break;
+
+                    case "REL": // branch ex: BEQ label
+                        int target = labels.ContainsKey(operand) ? labels[operand] : throw new Exception($"Label não encontrado: {operand}");
+                        int offset = (target - output.Count - 1);
+                        output.Add((byte)(offset & 0xFF));
+                        break;
+
+                    case "IND_Y": // ex: ($10),Y
+                    case "X_IND": // ex: ($10,X)
+                        byte zp = Convert.ToByte(operand.Substring(2, 2), 16);
+                        output.Add(zp);
+                        break;
+
+                    case "":
+                        // implícita, como BRK, INX, etc — nada a adicionar
+                        break;
+
+                    default:
+                        throw new Exception($"Modo de endereçamento não suportado: {mode}");
                 }
             }
 
             return output.ToArray();
+        }
+        static int EstimateInstructionSize(string line)
+        {
+            if (line.Contains("#$")) return 2;         // imediato
+            if (line.Contains("$") || line.Contains("(")) return 3; // absoluto, indireto
+            if (line.Split().Length == 1) return 1;     // implícito
+            return 2;                                   // relativo, zero page...
+        }
+
+        static string GetAddressingMode(string operand)
+        {
+            if (string.IsNullOrEmpty(operand)) return "";
+
+            if (operand.StartsWith("#$")) return "IMM";
+            if (operand.StartsWith("$")) return "ABS";
+            if (operand.StartsWith("(") && operand.EndsWith(",Y")) return "IND_Y";
+            if (operand.StartsWith("(") && operand.Contains(",X")) return "X_IND";
+            if (!operand.Contains("$") && !operand.Contains("(")) return "REL";
+
+            return ""; // fallback para implícito
         }
     }
 }

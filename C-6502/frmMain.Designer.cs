@@ -67,6 +67,8 @@
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lineNumbers = new System.Windows.Forms.RichTextBox();
             this.txtCode = new System.Windows.Forms.RichTextBox();
+            this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportRAWToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.pctScreen)).BeginInit();
             this.grpStuff.SuspendLayout();
             this.MenuStrip.SuspendLayout();
@@ -337,6 +339,9 @@
             // 
             // exportBinaryToolStripMenuItem
             // 
+            this.exportBinaryToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exportToolStripMenuItem,
+            this.exportRAWToolStripMenuItem});
             this.exportBinaryToolStripMenuItem.Name = "exportBinaryToolStripMenuItem";
             this.exportBinaryToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E)));
             this.exportBinaryToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
@@ -439,6 +444,24 @@
             this.txtCode.VScroll += new System.EventHandler(this.txtCode_VScroll);
             this.txtCode.TextChanged += new System.EventHandler(this.txtCode_TextChanged);
             // 
+            // exportToolStripMenuItem
+            // 
+            this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
+            this.exportToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.E)));
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(250, 22);
+            this.exportToolStripMenuItem.Text = "Export with Address";
+            this.exportToolStripMenuItem.Click += new System.EventHandler(this.exportToolStripMenuItem_Click);
+            // 
+            // exportRAWToolStripMenuItem
+            // 
+            this.exportRAWToolStripMenuItem.Name = "exportRAWToolStripMenuItem";
+            this.exportRAWToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.R)));
+            this.exportRAWToolStripMenuItem.Size = new System.Drawing.Size(250, 22);
+            this.exportRAWToolStripMenuItem.Text = "Export RAW";
+            this.exportRAWToolStripMenuItem.Click += new System.EventHandler(this.exportRAWToolStripMenuItem_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -512,6 +535,8 @@
         private System.Windows.Forms.ToolStripMenuItem exportBinaryToolStripMenuItem;
         private System.Windows.Forms.RichTextBox lineNumbers;
         private System.Windows.Forms.RichTextBox txtCode;
+        private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exportRAWToolStripMenuItem;
     }
 }
 

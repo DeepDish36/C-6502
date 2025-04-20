@@ -39,6 +39,7 @@ namespace C_6502
 
             txtCode.TextChanged += txtCode_TextChanged;
             txtCode.VScroll += txtCode_VScroll;
+
             UpdateLineNumbers();
             lineNumbers.Paint += lineNumbers_Paint;
 
@@ -255,6 +256,26 @@ namespace C_6502
         {
             int d = GetScrollPos(txtCode.Handle, SB_VERT);
             SendMessage(lineNumbers.Handle, WM_VSCROLL, (IntPtr)(SB_THUMBPOSITION + 0x10000 * d), IntPtr.Zero);
+        }
+
+        private void SaveBinaryFile(string path)
+        {
+            if (assembledBytes == null || assembledBytes.Length == 0)
+            {
+                MessageBox.Show("Nenhum programa compilado para guardar.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
+            {
+                // Opcional: escreve o endereço base (ex: $0600)
+                writer.Write((ushort)programStart); // 2 bytes (little-endian)
+
+                // Depois, escreve os bytes do programa
+                writer.Write(assembledBytes);
+            }
+
+            MessageBox.Show("Ficheiro .bin guardado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void HighlightSyntax()
@@ -587,7 +608,18 @@ namespace C_6502
             // Permite novo assemble
             btnAssemble.Enabled = true;
         }
+        private void HighlightLinhaAtual()
+        {
+            int linhaInicio = txtCode.GetFirstCharIndexOfCurrentLine();
+            int linhaTamanho = txtCode.Lines[txtCode.GetLineFromCharIndex(linhaInicio)].Length;
 
+            txtCode.SelectAll();
+            txtCode.SelectionBackColor = txtCode.BackColor; // limpa destaque
+
+            txtCode.Select(linhaInicio, linhaTamanho);
+            txtCode.SelectionBackColor = Color.FromArgb(255, 245, 230); // cor suave
+            txtCode.Select(txtCode.TextLength, 0); // deseleciona
+        }
         private void txtCode_TextChanged(object sender, EventArgs e)
         {
             UpdateLineNumbers();
@@ -800,6 +832,18 @@ namespace C_6502
 
         private void exportBinaryToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Filter = "Ficheiros binários (*.bin)|*.bin";
+            sfd.Title = "Guardar programa como ficheiro .bin";
+
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                SaveBinaryFile(sfd.FileName);
+            }
+        }
+
+        private void exportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
             if (assembledBytes == null || assembledBytes.Length == 0)
             {
                 MessageBox.Show("Nenhum código compilado para exportar.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -809,13 +853,40 @@ namespace C_6502
             using (SaveFileDialog saveDialog = new SaveFileDialog())
             {
                 saveDialog.Filter = "Ficheiro binário (*.bin)|*.bin";
-                saveDialog.Title = "Exportar código compilado";
-                saveDialog.FileName = "programa.bin";
+                saveDialog.Title = "Exportar binário com endereço";
+                saveDialog.FileName = "programa_com_endereco.bin";
+
+                if (saveDialog.ShowDialog() == DialogResult.OK)
+                {
+                    List<byte> withAddress = new List<byte>();
+                    withAddress.Add((byte)(programStart & 0xFF));       // Low byte
+                    withAddress.Add((byte)((programStart >> 8) & 0xFF)); // High byte
+                    withAddress.AddRange(assembledBytes);
+
+                    File.WriteAllBytes(saveDialog.FileName, withAddress.ToArray());
+                    MessageBox.Show("Ficheiro exportado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
+
+        private void exportRAWToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (assembledBytes == null || assembledBytes.Length == 0)
+            {
+                MessageBox.Show("Nenhum código compilado para exportar.", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            using (SaveFileDialog saveDialog = new SaveFileDialog())
+            {
+                saveDialog.Filter = "Ficheiro binário (*.bin)|*.bin";
+                saveDialog.Title = "Exportar binário (RAW)";
+                saveDialog.FileName = "programa_raw.bin";
 
                 if (saveDialog.ShowDialog() == DialogResult.OK)
                 {
                     File.WriteAllBytes(saveDialog.FileName, assembledBytes);
-                    MessageBox.Show("Ficheiro exportado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Ficheiro RAW exportado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }

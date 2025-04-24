@@ -30,6 +30,41 @@ namespace C_6502
 
         private HashSet<int> errorLines = new HashSet<int>();
 
+        private HashSet<string> instrucoesReconhecidas = new HashSet<string>
+        {
+            "LDA", "STA", "JMP", "TAX", "INX", "BRK", "LDX",
+            "BEQ", "BPL", "BMI", "BCC", "BCS", "BVC", "BVS", "BNE",
+            "JSR", "RTS", "RTI", "CPY", "CPX", "ORA", "AND", "EOR",
+            "ADC", "CMP", "SBC"
+        };
+
+        private readonly Dictionary<string, string> instrucoesDescricao = new Dictionary<string, string>
+        {
+            { "LDA", "Load Accumulator" },
+            { "STA", "Store Accumulator" },
+            { "TAX", "Transfer Accumulator to X" },
+            { "INX", "Increment X" },
+            { "BRK", "Break / Interrupt" },
+            { "BEQ", "Branch if Equal (Zero set)" },
+            { "BNE", "Branch if Not Equal (Zero clear)" },
+            { "BPL", "Branch if Positive (Negative clear)" },
+            { "BMI", "Branch if Minus (Negative set)" },
+            { "JSR", "Jump to Subroutine" },
+            { "RTS", "Return from Subroutine" },
+            { "CMP", "Compare Accumulator" },
+            { "CPX", "Compare X Register" },
+            { "CPY", "Compare Y Register" },
+            // adiciona mais se quiseres
+        };
+
+        enum Tema
+        {
+            Claro,
+            Escuro
+        }
+
+        private Tema temaAtual = Tema.Claro;
+
         public frmMain()
         {
             InitializeComponent();
@@ -120,6 +155,24 @@ namespace C_6502
             lineNumbers.Invalidate(); // redesenha os números com os erros
         }
 
+        private void AlternarTema()
+        {
+            if (temaAtual == Tema.Claro)
+            {
+                txtCode.BackColor = Color.Black;
+                txtCode.ForeColor = Color.White;
+                temaAtual = Tema.Escuro;
+            }
+            else
+            {
+                txtCode.BackColor = Color.White;
+                txtCode.ForeColor = Color.Black;
+                temaAtual = Tema.Claro;
+            }
+
+            HighlightSyntax(); // Redesenha com as cores apropriadas
+        }
+
         private void FrmMain_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -205,6 +258,9 @@ namespace C_6502
 
         private void frmMain_Load(object sender, EventArgs e)
         {
+            txtMonitorStart.Text = "0000";
+            txtMonitorLength.Text = "00FF";
+
             Debugger.PrintHeader();
 
             // Apenas o Assemble começa ativo
@@ -311,20 +367,22 @@ namespace C_6502
                 }
 
                 // Palavras (tokens)
-                string[] tokens = line.Split(' ', '\t', ',');
+                string[] tokens = line.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
                 int offset = 0;
 
                 foreach (string token in tokens)
                 {
-                    if (token == "") continue;
+                    if (string.IsNullOrWhiteSpace(token)) continue;
 
                     string upper = token.ToUpper();
 
-                    if (Assembler6502.opcodes.ContainsKey(upper + "_IMM") || Assembler6502.opcodes.ContainsKey(upper + "_ABS") || Assembler6502.opcodes.ContainsKey(upper))
+                    // Instruções
+                    if (instrucoesReconhecidas.Contains(upper))
                     {
                         txtCode.Select(lineStart + offset, token.Length);
                         txtCode.SelectionColor = Color.Blue;
                     }
+                    // Valores imediatos ou hexadecimais
                     else if (token.StartsWith("#$") || token.StartsWith("$"))
                     {
                         txtCode.Select(lineStart + offset, token.Length);
@@ -455,6 +513,22 @@ namespace C_6502
                 }
 
                 AppendLog($"Program executed in {steps} steps.");
+
+                // 👇 AQUI entra o monitor!
+                if (chkMonitor.Checked)
+                {
+                    try
+                    {
+                        int start = Convert.ToInt32(txtMonitorStart.Text, 16);
+                        int length = Convert.ToInt32(txtMonitorLength.Text, 16);
+
+                        Debugger.PrintMemoryMonitor(cpu.Memory, start, length);
+                    }
+                    catch (Exception ex)
+                    {
+                        AppendLog($"[Monitor] Erro ao ler valores: {ex.Message}");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -889,6 +963,39 @@ namespace C_6502
                     MessageBox.Show("Ficheiro RAW exportado com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
+        }
+
+        private void txtCode_MouseMove(object sender, MouseEventArgs e)
+        {
+            int index = txtCode.GetCharIndexFromPosition(e.Location);
+            if (index >= 0 && index < txtCode.Text.Length)
+            {
+                int start = index;
+                while (start > 0 && !char.IsWhiteSpace(txtCode.Text[start - 1])) start--;
+                int end = index;
+                while (end < txtCode.Text.Length && !char.IsWhiteSpace(txtCode.Text[end])) end++;
+
+                string word = txtCode.Text.Substring(start, end - start).ToUpper();
+
+                if (instrucoesDescricao.TryGetValue(word, out string descricao))
+                {
+                    tooltipDica.SetToolTip(txtCode, $"{word}: {descricao}");
+                }
+                else
+                {
+                    tooltipDica.SetToolTip(txtCode, null);
+                }
+            }
+        }
+
+        private void changeThemeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AlternarTema();
+        }
+
+        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("C-6502 Emulator v1.0, made by @DeepDish36","Help");
         }
     }
 }

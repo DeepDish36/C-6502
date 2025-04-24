@@ -56,6 +56,8 @@
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportBinaryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportRAWToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.runToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aseembleToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -67,8 +69,13 @@
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lineNumbers = new System.Windows.Forms.RichTextBox();
             this.txtCode = new System.Windows.Forms.RichTextBox();
-            this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exportRAWToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.changeThemeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkMonitor = new System.Windows.Forms.CheckBox();
+            this.txtMonitorStart = new System.Windows.Forms.TextBox();
+            this.txtMonitorLength = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pctScreen)).BeginInit();
             this.grpStuff.SuspendLayout();
             this.MenuStrip.SuspendLayout();
@@ -273,7 +280,7 @@
             this.txtLog.BackColor = System.Drawing.SystemColors.ScrollBar;
             this.txtLog.Enabled = false;
             this.txtLog.Font = new System.Drawing.Font("MS Gothic", 9.75F);
-            this.txtLog.Location = new System.Drawing.Point(12, 446);
+            this.txtLog.Location = new System.Drawing.Point(12, 486);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.Size = new System.Drawing.Size(756, 91);
@@ -284,7 +291,8 @@
             this.MenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.runToolStripMenuItem,
-            this.helpToolStripMenuItem});
+            this.helpToolStripMenuItem,
+            this.toolsToolStripMenuItem});
             this.MenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MenuStrip.Name = "MenuStrip";
             this.MenuStrip.Size = new System.Drawing.Size(780, 24);
@@ -347,6 +355,24 @@
             this.exportBinaryToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.exportBinaryToolStripMenuItem.Text = "Export Binary";
             this.exportBinaryToolStripMenuItem.Click += new System.EventHandler(this.exportBinaryToolStripMenuItem_Click);
+            // 
+            // exportToolStripMenuItem
+            // 
+            this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
+            this.exportToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.E)));
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(250, 22);
+            this.exportToolStripMenuItem.Text = "Export with Address";
+            this.exportToolStripMenuItem.Click += new System.EventHandler(this.exportToolStripMenuItem_Click);
+            // 
+            // exportRAWToolStripMenuItem
+            // 
+            this.exportRAWToolStripMenuItem.Name = "exportRAWToolStripMenuItem";
+            this.exportRAWToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.R)));
+            this.exportRAWToolStripMenuItem.Size = new System.Drawing.Size(250, 22);
+            this.exportRAWToolStripMenuItem.Text = "Export RAW";
+            this.exportRAWToolStripMenuItem.Click += new System.EventHandler(this.exportRAWToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
@@ -416,6 +442,7 @@
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "Help";
+            this.helpToolStripMenuItem.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
             // 
             // lineNumbers
             // 
@@ -443,30 +470,78 @@
             this.txtCode.Text = "";
             this.txtCode.VScroll += new System.EventHandler(this.txtCode_VScroll);
             this.txtCode.TextChanged += new System.EventHandler(this.txtCode_TextChanged);
+            this.txtCode.MouseMove += new System.Windows.Forms.MouseEventHandler(this.txtCode_MouseMove);
             // 
-            // exportToolStripMenuItem
+            // toolsToolStripMenuItem
             // 
-            this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.E)));
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(250, 22);
-            this.exportToolStripMenuItem.Text = "Export with Address";
-            this.exportToolStripMenuItem.Click += new System.EventHandler(this.exportToolStripMenuItem_Click);
+            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.changeThemeToolStripMenuItem});
+            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
+            this.toolsToolStripMenuItem.Text = "Tools";
             // 
-            // exportRAWToolStripMenuItem
+            // changeThemeToolStripMenuItem
             // 
-            this.exportRAWToolStripMenuItem.Name = "exportRAWToolStripMenuItem";
-            this.exportRAWToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
-            | System.Windows.Forms.Keys.R)));
-            this.exportRAWToolStripMenuItem.Size = new System.Drawing.Size(250, 22);
-            this.exportRAWToolStripMenuItem.Text = "Export RAW";
-            this.exportRAWToolStripMenuItem.Click += new System.EventHandler(this.exportRAWToolStripMenuItem_Click);
+            this.changeThemeToolStripMenuItem.Name = "changeThemeToolStripMenuItem";
+            this.changeThemeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.changeThemeToolStripMenuItem.Text = "Change Theme";
+            this.changeThemeToolStripMenuItem.Click += new System.EventHandler(this.changeThemeToolStripMenuItem_Click);
+            // 
+            // chkMonitor
+            // 
+            this.chkMonitor.AutoSize = true;
+            this.chkMonitor.Font = new System.Drawing.Font("MS Gothic", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkMonitor.Location = new System.Drawing.Point(36, 456);
+            this.chkMonitor.Name = "chkMonitor";
+            this.chkMonitor.Size = new System.Drawing.Size(66, 16);
+            this.chkMonitor.TabIndex = 22;
+            this.chkMonitor.Text = "Monitor";
+            this.chkMonitor.UseVisualStyleBackColor = true;
+            // 
+            // txtMonitorStart
+            // 
+            this.txtMonitorStart.Location = new System.Drawing.Point(178, 454);
+            this.txtMonitorStart.Name = "txtMonitorStart";
+            this.txtMonitorStart.Size = new System.Drawing.Size(55, 20);
+            this.txtMonitorStart.TabIndex = 23;
+            // 
+            // txtMonitorLength
+            // 
+            this.txtMonitorLength.Location = new System.Drawing.Point(314, 453);
+            this.txtMonitorLength.Name = "txtMonitorLength";
+            this.txtMonitorLength.Size = new System.Drawing.Size(55, 20);
+            this.txtMonitorLength.TabIndex = 24;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("MS Gothic", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(119, 458);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(53, 12);
+            this.label1.TabIndex = 25;
+            this.label1.Text = "Start: $";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("MS Gothic", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(249, 458);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(59, 12);
+            this.label2.TabIndex = 26;
+            this.label2.Text = "Length: $";
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(780, 548);
+            this.ClientSize = new System.Drawing.Size(780, 589);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.txtMonitorLength);
+            this.Controls.Add(this.txtMonitorStart);
+            this.Controls.Add(this.chkMonitor);
             this.Controls.Add(this.txtCode);
             this.Controls.Add(this.lineNumbers);
             this.Controls.Add(this.txtLog);
@@ -537,6 +612,13 @@
         private System.Windows.Forms.RichTextBox txtCode;
         private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exportRAWToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem changeThemeToolStripMenuItem;
+        private System.Windows.Forms.CheckBox chkMonitor;
+        private System.Windows.Forms.TextBox txtMonitorStart;
+        private System.Windows.Forms.TextBox txtMonitorLength;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
     }
 }
 

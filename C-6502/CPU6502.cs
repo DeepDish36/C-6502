@@ -32,7 +32,7 @@ namespace C_6502
             Array.Clear(Memory, 0, Memory.Length);
             PC = ReadWord(0xFFFC); // Vetor de Reset
             SP = 0xFD;
-            Status = 0x24; // Bit 5 sempre 1, Bit 2 sempre 1
+            Status = 0x30; // Bit 5 sempre 1, Bit 2 sempre 1
         }
 
         // Lê um byte da memória

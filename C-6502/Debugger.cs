@@ -45,5 +45,30 @@ namespace C_6502
             Console.ResetColor();
             Console.WriteLine("--------------------------------");
         }
+
+        public static void PrintMemoryMonitor(byte[] memory, int start, int length)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("=== Monitor de Memória ===");
+
+            for (int i = start; i < start + length; i += 16)
+            {
+                StringBuilder line = new StringBuilder();
+                line.Append(i.ToString("X4") + ": ");
+
+                for (int j = 0; j < 16; j++)
+                {
+                    if (i + j < memory.Length)
+                        line.Append(memory[i + j].ToString("X2") + " ");
+                    else
+                        line.Append("   ");
+                }
+
+                Console.WriteLine(line.ToString().TrimEnd());
+            }
+
+            Console.WriteLine("===========================");
+        }
+
     }
 }

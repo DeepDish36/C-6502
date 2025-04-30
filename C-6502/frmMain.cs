@@ -522,6 +522,12 @@ namespace C_6502
                         int start = Convert.ToInt32(txtMonitorStart.Text, 16);
                         int length = Convert.ToInt32(txtMonitorLength.Text, 16);
 
+                        if (start > 0xFFFF || length > 0xFFFF || (start + length) > 0x10000)
+                        {
+                            Console.WriteLine("Cannot monitor this range. Valid ranges are between $0000 and $FFFF, inclusive.");
+                            return;
+                        }
+
                         Debugger.PrintMemoryMonitor(cpu.Memory, start, length);
                     }
                     catch (Exception ex)

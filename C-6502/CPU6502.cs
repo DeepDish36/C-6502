@@ -212,6 +212,44 @@ namespace C_6502
                     LDX_Immediate();
                     break;
 
+                //---------------------------------------------------------------------------------//
+                //Instruções de opcode 0x24 a 0xE4    
+                case 0x24: // BIT Zero Page
+                    {
+                        BIT_ZPG();
+                        break;
+                    }
+                case 0x84: // STY Zero Page
+                    {
+                        STY_ZPG();
+                        break;
+                    }
+                case 0x94: // STY Zero Page,X
+                    {
+                        STY_ZPG_X();
+                        break;
+                    }
+                case 0xA4: // LDY Zero Page
+                    {
+                        LDY_ZPG();
+                        break;
+                    }
+                case 0xB4: // LDY Zero Page,X
+                    {
+                        LDY_ZPG_X();
+                        break;
+                    }
+                case 0xC4: // CPY Zero Page
+                    {
+                        CPY_ZPG();
+                        break;
+                    }
+                case 0xE4: // CPX Zero Page
+                    {
+                        CPX_ZPG();
+                        break;
+                    }
+
                 case 0xA9: // LDA #imediato
                     A = ReadByte(PC++);
                     SetZeroNegativeFlags(A);
@@ -669,6 +707,74 @@ namespace C_6502
 
         //---------------------------------------------------------------------------------//
 
+        //Instruções 24 até E4
+
+        private void BIT_ZPG()
+        {
+            byte addr = ReadByte(PC++);
+            byte value = ReadByte(addr);
+            byte result = (byte)(A & value);
+            SetZeroFlag(result == 0);
+            SetOverflowFlag((value & 0x40) != 0); // Bit 6
+            SetNegativeFlag((value & 0x80) != 0); // Bit 7
+            PC += 2;
+        }
+
+        private void STY_ZPG()
+        {
+            byte addr = ReadByte(PC++);
+            WriteByte(addr, Y);
+            PC += 2;
+        }
+
+        private void STY_ZPG_X()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X); // wrap-around 0xFF
+            WriteByte(addr, Y);
+            PC += 2;
+        }
+
+        private void LDY_ZPG()
+        {
+            byte addr = ReadByte(PC++);
+            Y = ReadByte(addr);
+            SetZeroFlag(Y == 0);
+            SetNegativeFlag((Y & 0x80) != 0);
+            PC += 2;
+        }
+
+        private void LDY_ZPG_X()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            Y = ReadByte(addr);
+            SetZeroFlag(Y == 0);
+            SetNegativeFlag((Y & 0x80) != 0);
+            PC += 2;
+        }
+
+        private void CPY_ZPG()
+        {
+            byte addr = ReadByte(PC++);
+            byte value = ReadByte(addr);
+            byte result = (byte)(Y - value);
+            SetCarryFlag(Y >= value);
+            SetZeroFlag(Y == value);
+            SetNegativeFlag((result & 0x80) != 0);
+            PC += 2;
+        }
+
+        private void CPX_ZPG()
+        {
+            byte addr = ReadByte(PC++);
+            byte value = ReadByte(addr);
+            byte result = (byte)(X - value);
+            SetCarryFlag(X >= value);
+            SetZeroFlag(X == value);
+            SetNegativeFlag((result & 0x80) != 0);
+            PC += 2;
+        }
+
+        //---------------------------------------------------------------------------------//
         //Comandos auxiliares
         // Empilha o valor no stack
         private void PushStack(byte value)
@@ -682,6 +788,15 @@ namespace C_6502
         {
             Status = (byte)((Status & 0x7D) | (value == 0 ? 0x02 : 0) | (value & 0x80));
         }
+
+        void SetZeroFlag(bool value) => Status = value ? (byte)(Status | 0x02) : (byte)(Status & ~0x02);
+
+        void SetNegativeFlag(bool value) => Status = value ? (byte)(Status | 0x80) : (byte)(Status & ~0x80);
+
+        void SetCarryFlag(bool value) => Status = value ? (byte)(Status | 0x01) : (byte)(Status & ~0x01);
+
+        void SetOverflowFlag(bool value) => Status = value ? (byte)(Status | 0x40) : (byte)(Status & ~0x40);
+
 
         // Carrega um programa na memória e define o PC
         public void LoadProgram(byte[] program, ushort startAddress)
@@ -766,16 +881,92 @@ namespace C_6502
 
         public string DisassembleSingle(ref ushort pc)
         {
-            byte opcode = ReadByte(pc);
+            ushort start = pc;
+            byte opcode = ReadByte(pc++);
+            byte b1 = 0, b2 = 0;
+            ushort addr;
+            string result;
+
             switch (opcode)
             {
-                case 0xA9: // LDA #imediato
-                    return $"LDA #${ReadByte((ushort)(pc + 1)):X2}".PadRight(12);
-                case 0xAA: return "TAX";
-                case 0xE8: return "INX";
-                case 0x00: return "BRK";
-                default: return $"??? (${opcode:X2})";
+                // LDA
+                case 0xA9: // Immediate
+                    b1 = ReadByte(pc++);
+                    result = $"LDA #${b1:X2}";
+                    break;
+                case 0xA5: // Zero page
+                    b1 = ReadByte(pc++);
+                    result = $"LDA ${b1:X2}";
+                    break;
+                case 0xB5: // Zero page,X
+                    b1 = ReadByte(pc++);
+                    result = $"LDA ${b1:X2},X";
+                    break;
+                case 0xAD: // Absolute
+                    b1 = ReadByte(pc++);
+                    b2 = ReadByte(pc++);
+                    addr = (ushort)(b1 | (b2 << 8));
+                    result = $"LDA ${addr:X4}";
+                    break;
+                case 0xBD: // Absolute,X
+                    b1 = ReadByte(pc++);
+                    b2 = ReadByte(pc++);
+                    addr = (ushort)(b1 | (b2 << 8));
+                    result = $"LDA ${addr:X4},X";
+                    break;
+                case 0xB9: // Absolute,Y
+                    b1 = ReadByte(pc++);
+                    b2 = ReadByte(pc++);
+                    addr = (ushort)(b1 | (b2 << 8));
+                    result = $"LDA ${addr:X4},Y";
+                    break;
+
+                // STA
+                case 0x85: // Zero page
+                    b1 = ReadByte(pc++);
+                    result = $"STA ${b1:X2}";
+                    break;
+                case 0x95: // Zero page,X
+                    b1 = ReadByte(pc++);
+                    result = $"STA ${b1:X2},X";
+                    break;
+                case 0x8D: // Absolute
+                    b1 = ReadByte(pc++);
+                    b2 = ReadByte(pc++);
+                    addr = (ushort)(b1 | (b2 << 8));
+                    result = $"STA ${addr:X4}";
+                    break;
+                case 0x9D: // Absolute,X
+                    b1 = ReadByte(pc++);
+                    b2 = ReadByte(pc++);
+                    addr = (ushort)(b1 | (b2 << 8));
+                    result = $"STA ${addr:X4},X";
+                    break;
+                case 0x99: // Absolute,Y
+                    b1 = ReadByte(pc++);
+                    b2 = ReadByte(pc++);
+                    addr = (ushort)(b1 | (b2 << 8));
+                    result = $"STA ${addr:X4},Y";
+                    break;
+
+                case 0x00: // BRK
+                    result = "BRK";
+                    break;
+
+                default:
+                    result = $"??? (${opcode:X2})";
+                    break;
             }
+
+            // Replace the line causing the error:  
+            // StringBuilder bytes = new();  
+
+            // With the following line to explicitly specify the type:  
+            StringBuilder bytes = new StringBuilder();
+            for (ushort i = start; i < pc; i++)
+                bytes.Append($"{ReadByte(i):X2} ");
+
+            return $"{bytes.ToString().PadRight(10)} {result}";
         }
     }
 }

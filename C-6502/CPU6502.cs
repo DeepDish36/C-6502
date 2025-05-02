@@ -886,87 +886,36 @@ namespace C_6502
             byte b1 = 0, b2 = 0;
             ushort addr;
             string result;
+            string comment = "";
 
             switch (opcode)
             {
-                // LDA
-                case 0xA9: // Immediate
-                    b1 = ReadByte(pc++);
-                    result = $"LDA #${b1:X2}";
-                    break;
-                case 0xA5: // Zero page
-                    b1 = ReadByte(pc++);
-                    result = $"LDA ${b1:X2}";
-                    break;
-                case 0xB5: // Zero page,X
-                    b1 = ReadByte(pc++);
-                    result = $"LDA ${b1:X2},X";
-                    break;
-                case 0xAD: // Absolute
-                    b1 = ReadByte(pc++);
-                    b2 = ReadByte(pc++);
-                    addr = (ushort)(b1 | (b2 << 8));
-                    result = $"LDA ${addr:X4}";
-                    break;
-                case 0xBD: // Absolute,X
-                    b1 = ReadByte(pc++);
-                    b2 = ReadByte(pc++);
-                    addr = (ushort)(b1 | (b2 << 8));
-                    result = $"LDA ${addr:X4},X";
-                    break;
-                case 0xB9: // Absolute,Y
-                    b1 = ReadByte(pc++);
-                    b2 = ReadByte(pc++);
-                    addr = (ushort)(b1 | (b2 << 8));
-                    result = $"LDA ${addr:X4},Y";
-                    break;
-
-                // STA
-                case 0x85: // Zero page
-                    b1 = ReadByte(pc++);
-                    result = $"STA ${b1:X2}";
-                    break;
-                case 0x95: // Zero page,X
-                    b1 = ReadByte(pc++);
-                    result = $"STA ${b1:X2},X";
-                    break;
-                case 0x8D: // Absolute
+                case 0xA9: b1 = ReadByte(pc++); result = $"LDA #${b1:X2}"; comment = $"Carrega o valor ${b1:X2} no acumulador"; break;
+                case 0x8D:
                     b1 = ReadByte(pc++);
                     b2 = ReadByte(pc++);
                     addr = (ushort)(b1 | (b2 << 8));
                     result = $"STA ${addr:X4}";
+                    comment = $"Guarda o acumulador em ${addr:X4}";
                     break;
-                case 0x9D: // Absolute,X
-                    b1 = ReadByte(pc++);
-                    b2 = ReadByte(pc++);
-                    addr = (ushort)(b1 | (b2 << 8));
-                    result = $"STA ${addr:X4},X";
-                    break;
-                case 0x99: // Absolute,Y
-                    b1 = ReadByte(pc++);
-                    b2 = ReadByte(pc++);
-                    addr = (ushort)(b1 | (b2 << 8));
-                    result = $"STA ${addr:X4},Y";
-                    break;
-
-                case 0x00: // BRK
+                case 0x00:
                     result = "BRK";
+                    comment = "Interrupção/terminar";
                     break;
-
                 default:
                     result = $"??? (${opcode:X2})";
                     break;
             }
 
-            // Replace the line causing the error:  
-            // StringBuilder bytes = new();  
-
-            // With the following line to explicitly specify the type:  
             StringBuilder bytes = new StringBuilder();
             for (ushort i = start; i < pc; i++)
                 bytes.Append($"{ReadByte(i):X2} ");
 
-            return $"{bytes.ToString().PadRight(10)} {result}";
+            string line = $"${start:X4}    {bytes.ToString().PadRight(9)} {result}";
+            if (!string.IsNullOrEmpty(comment))
+                line = $"{line.PadRight(32)} ; {comment}";
+
+            return line;
         }
     }
 }

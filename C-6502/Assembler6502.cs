@@ -72,7 +72,6 @@ namespace C_6502
             {
                 string line = raw.Trim();
 
-                // Ignorar comentários
                 int commentIndex = line.IndexOf(';');
                 if (commentIndex >= 0)
                     line = line.Substring(0, commentIndex);
@@ -80,7 +79,7 @@ namespace C_6502
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
 
-                line = line.ToUpper();
+                line = line.ToLower();
 
                 if (line.EndsWith(":"))
                 {
@@ -90,61 +89,129 @@ namespace C_6502
                 else
                 {
                     instructions.Add((line, currentAddress));
-                    currentAddress += EstimateInstructionSize(line);
+                    if (line.StartsWith("dcb"))
+                        currentAddress += EstimateDcbSize(line);
+                    else
+                        currentAddress += EstimateInstructionSize(line);
                 }
             }
 
-            // 2ª PASSAGEM — gerar código
+            currentAddress = 0;
+
+            // 2ª PASSAGEM — gerar os bytes
             foreach (var (line, _) in instructions)
             {
-                string[] parts = line.Split(new[] { ' ', '\t' }, 2, StringSplitOptions.RemoveEmptyEntries);
-                string mnemonic = parts[0];
-                string operand = parts.Length > 1 ? parts[1].Trim() : "";
+                string trimmed = line.Trim().ToLower();
 
-                string mode = GetAddressingMode(operand);
-                string key = mnemonic + (string.IsNullOrEmpty(mode) ? "" : "_" + mode);
-
-                if (!opcodes.ContainsKey(key))
-                    throw new Exception($"Instrução desconhecida ou não suportada: {key}");
-
-                output.Add(opcodes[key]);
-
-                // Argumentos
-                switch (mode)
+                if (trimmed.StartsWith("dcb"))
                 {
-                    case "IMM": // ex: #$01
-                        output.Add(Convert.ToByte(operand.Substring(2), 16));
-                        break;
+                    string[] parts = trimmed.Substring(3).Split(',');
+                    int i = 0;
 
-                    case "ABS": // ex: $0200
-                        ushort addr = Convert.ToUInt16(operand.Substring(1), 16);
-                        output.Add((byte)(addr & 0xFF));
-                        output.Add((byte)(addr >> 8));
-                        break;
+                    while (i < parts.Length)
+                    {
+                        string part1 = parts[i].Trim();
 
-                    case "REL": // branch ex: BEQ label
-                        int target = labels.ContainsKey(operand) ? labels[operand] : throw new Exception($"Label não encontrado: {operand}");
-                        int offset = (target - output.Count - 1);
-                        output.Add((byte)(offset & 0xFF));
-                        break;
+                        if (i + 1 < parts.Length && byte.TryParse(parts[i + 1].Trim(), out byte val))
+                        {
+                            if (int.TryParse(part1, out int count))
+                            {
+                                for (int j = 0; j < count; j++)
+                                    output.Add(val);
 
-                    case "IND_Y": // ex: ($10),Y
-                    case "X_IND": // ex: ($10,X)
-                        byte zp = Convert.ToByte(operand.Substring(2, 2), 16);
-                        output.Add(zp);
-                        break;
+                                currentAddress += count;
+                                i += 2;
+                                continue;
+                            }
+                        }
 
-                    case "":
-                        // implícita, como BRK, INX, etc — nada a adicionar
-                        break;
+                        byte value;
+                        if (part1.StartsWith("$"))
+                            value = Convert.ToByte(part1.Substring(1), 16);
+                        else if (part1.StartsWith("0x"))
+                            value = Convert.ToByte(part1.Substring(2), 16);
+                        else
+                            value = Convert.ToByte(part1);
 
-                    default:
-                        throw new Exception($"Modo de endereçamento não suportado: {mode}");
+                        output.Add(value);
+                        currentAddress++;
+                        i++;
+                    }
+                }
+                else
+                {
+                    string[] parts = line.Split(new[] { ' ', '\t' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                    string mnemonic = parts[0];
+                    string operand = parts.Length > 1 ? parts[1].Trim() : "";
+
+                    string mode = GetAddressingMode(operand);
+                    string key = (mnemonic + (string.IsNullOrEmpty(mode) ? "" : "_" + mode)).ToUpper();
+
+                    if (!opcodes.ContainsKey(key))
+                        throw new Exception($"Instrução desconhecida ou não suportada: {key}");
+
+                    output.Add(opcodes[key]);
+
+                    switch (mode)
+                    {
+                        case "IMM":
+                            output.Add(Convert.ToByte(operand.Substring(2), 16));
+                            break;
+                        case "ABS":
+                            ushort addr = Convert.ToUInt16(operand.Substring(1), 16);
+                            output.Add((byte)(addr & 0xFF));
+                            output.Add((byte)(addr >> 8));
+                            break;
+                        case "REL":
+                            int target = labels.ContainsKey(operand) ? labels[operand] : throw new Exception($"Label não encontrado: {operand}");
+                            int offset = (target - output.Count - 1);
+                            output.Add((byte)(offset & 0xFF));
+                            break;
+                        case "IND_Y":
+                        case "X_IND":
+                            byte zp = Convert.ToByte(operand.Substring(2, 2), 16);
+                            output.Add(zp);
+                            break;
+                        case "":
+                            break;
+                        default:
+                            throw new Exception($"Modo de endereçamento não suportado: {mode}");
+                    }
+
+                    currentAddress = output.Count;
                 }
             }
 
             return output.ToArray();
         }
+
+        static int EstimateDcbSize(string line)
+        {
+            string[] parts = line.Substring(3).Split(',');
+            int size = 0;
+            int i = 0;
+
+            while (i < parts.Length)
+            {
+                string part1 = parts[i].Trim();
+
+                if (i + 1 < parts.Length && byte.TryParse(parts[i + 1].Trim(), out byte _))
+                {
+                    if (int.TryParse(part1, out int count))
+                    {
+                        size += count;
+                        i += 2;
+                        continue;
+                    }
+                }
+
+                size++;
+                i++;
+            }
+
+            return size;
+        }
+
         static int EstimateInstructionSize(string line)
         {
             if (line.Contains("#$")) return 2;         // imediato

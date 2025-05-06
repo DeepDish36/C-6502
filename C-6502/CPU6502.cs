@@ -799,9 +799,20 @@ namespace C_6502
 
 
         // Carrega um programa na memória e define o PC
-        public void LoadProgram(byte[] program, ushort startAddress)
+        public void LoadProgram(byte[] program, ushort startAddress = 0x0600)
         {
-            Array.Copy(program, 0, Memory, startAddress, program.Length);
+            for (int i = 0; i < program.Length; i++)
+            {
+                ushort addr = (ushort)(startAddress + i);
+                Memory[addr] = program[i];
+
+                // Notifica se o endereço for da área de vídeo
+                if (addr >= 0x0200 && addr <= 0x05FF)
+                {
+                    OnVideoWrite?.Invoke(addr, program[i]);
+                }
+            }
+
             PC = startAddress;
         }
 

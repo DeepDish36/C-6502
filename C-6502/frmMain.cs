@@ -38,8 +38,15 @@ namespace C_6502
             "ADC", "CMP", "SBC"
         };
 
-        private readonly Dictionary<string, string> instrucoesDescricao = new Dictionary<string, string>
+        public static readonly HashSet<string> diretivasReconhecidas = new HashSet<string>
         {
+            "DCB"
+            // futuro: "ORG", "EQU", etc.
+        };
+
+        private readonly Dictionary<string, string> instrucoesDescricao = new Dictionary<string, string>
+        {   
+            //Instruções
             { "LDA", "Load Accumulator" },
             { "STA", "Store Accumulator" },
             { "TAX", "Transfer Accumulator to X" },
@@ -55,6 +62,12 @@ namespace C_6502
             { "CPX", "Compare X Register" },
             { "CPY", "Compare Y Register" },
             // adiciona mais se quiseres
+        };
+
+        public static readonly Dictionary<string, string> diretivasDescricao = new Dictionary<string, string>
+        {
+            { "DCB", "Define Constant Byte" },
+            // futuro: ORG, EQU, etc.
         };
 
         enum Tema
@@ -382,6 +395,13 @@ namespace C_6502
                         txtCode.Select(lineStart + offset, token.Length);
                         txtCode.SelectionColor = Color.Blue;
                     }
+
+                    else if (diretivasReconhecidas.Contains(upper))
+                    {
+                        txtCode.Select(lineStart + offset, token.Length);
+                        txtCode.SelectionColor = Color.MediumPurple;
+                    }
+
                     // Valores imediatos ou hexadecimais
                     else if (token.StartsWith("#$") || token.StartsWith("$"))
                     {
@@ -983,7 +1003,13 @@ namespace C_6502
 
                 string word = txtCode.Text.Substring(start, end - start).ToUpper();
 
+                // Verifica se é uma instrução
                 if (instrucoesDescricao.TryGetValue(word, out string descricao))
+                {
+                    tooltipDica.SetToolTip(txtCode, $"{word}: {descricao}");
+                }
+                // Verifica se é uma diretiva
+                else if (diretivasDescricao.TryGetValue(word, out descricao))
                 {
                     tooltipDica.SetToolTip(txtCode, $"{word}: {descricao}");
                 }

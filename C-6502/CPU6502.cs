@@ -249,6 +249,70 @@ namespace C_6502
                         CPX_ZPG();
                         break;
                     }
+                // Instruções de opcode 0x05 a 0xF5
+                case 0x05: 
+                    ORA_ZeroPage(); 
+                    break;
+                
+                case 0x15: 
+                    ORA_ZeroPageX(); 
+                    break;
+                
+                case 0x25: 
+                    AND_ZeroPage(); 
+                    break;
+                
+                case 0x35: 
+                    AND_ZeroPageX(); 
+                    break;
+                
+                case 0x45: 
+                    EOR_ZeroPage(); 
+                    break;
+                
+                case 0x55: 
+                    EOR_ZeroPageX(); 
+                    break;
+                
+                case 0x65: 
+                    ADC_ZeroPage(); 
+                    break;
+                
+                case 0x75: 
+                    ADC_ZeroPageX(); 
+                    break;
+                
+                case 0x85: 
+                    STA_ZeroPage(); 
+                    break;
+                
+                case 0x95: 
+                    STA_ZeroPageX(); 
+                    break;
+                
+                case 0xA5: 
+                    LDA_ZeroPage(); 
+                    break;
+                
+                case 0xB5: 
+                    LDA_ZeroPageX(); 
+                    break;
+                
+                case 0xC5: 
+                    CMP_ZeroPage(); 
+                    break;
+                
+                case 0xD5: 
+                    CMP_ZeroPageX(); 
+                    break;
+                
+                case 0xE5: 
+                    SBC_ZeroPage(); 
+                    break;
+                
+                case 0xF5: 
+                    SBC_ZeroPageX(); 
+                    break;
 
                 case 0xA9: // LDA #imediato
                     A = ReadByte(PC++);
@@ -775,6 +839,130 @@ namespace C_6502
         }
 
         //---------------------------------------------------------------------------------//
+
+        // Instruções 05 até F5
+
+        // === ORA ===
+        private void ORA_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            A |= ReadByte(addr);
+            SetFlag(0x02, A == 0);          // Z
+            SetFlag(0x80, (A & 0x80) != 0); // N
+        }
+
+        private void ORA_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            A |= ReadByte(addr);
+            SetFlag(0x02, A == 0);
+            SetFlag(0x80, (A & 0x80) != 0);
+        }
+
+        // === AND ===
+        private void AND_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            A &= ReadByte(addr);
+            SetFlag(0x02, A == 0);
+            SetFlag(0x80, (A & 0x80) != 0);
+        }
+
+        private void AND_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            A &= ReadByte(addr);
+            SetFlag(0x02, A == 0);
+            SetFlag(0x80, (A & 0x80) != 0);
+        }
+
+        // === EOR ===
+        private void EOR_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            A ^= ReadByte(addr);
+            SetFlag(0x02, A == 0);
+            SetFlag(0x80, (A & 0x80) != 0);
+        }
+
+        private void EOR_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            A ^= ReadByte(addr);
+            SetFlag(0x02, A == 0);
+            SetFlag(0x80, (A & 0x80) != 0);
+        }
+
+        // === ADC ===
+        private void ADC_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            ADC(ReadByte(addr));
+        }
+
+        private void ADC_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            ADC(ReadByte(addr));
+        }
+
+        // === SBC ===
+        private void SBC_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            SBC_Operation(ReadByte(addr));
+        }
+
+        private void SBC_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            SBC_Operation(ReadByte(addr));
+        }
+
+        // === STA ===
+        private void STA_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            WriteByte(addr, A);
+        }
+
+        private void STA_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            WriteByte(addr, A);
+        }
+
+        // === LDA ===
+        private void LDA_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            A = ReadByte(addr);
+            SetFlag(0x02, A == 0);
+            SetFlag(0x80, (A & 0x80) != 0);
+        }
+
+        private void LDA_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            A = ReadByte(addr);
+            SetFlag(0x02, A == 0);
+            SetFlag(0x80, (A & 0x80) != 0);
+        }
+
+        // === CMP ===
+        private void CMP_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            SetCompareFlags(A, ReadByte(addr));
+        }
+
+        private void CMP_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            SetCompareFlags(A, ReadByte(addr));
+        }
+
+        //----------------------------------------------------------------------------------//
         //Comandos auxiliares
         // Empilha o valor no stack
         private void PushStack(byte value)

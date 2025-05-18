@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -379,37 +380,44 @@ namespace C_6502
                     txtCode.SelectionColor = Color.Orange;
                 }
 
-                // Palavras (tokens)
-                string[] tokens = line.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
-                int offset = 0;
+                // Palavras (tokens), incluindo operandos como $10,X
+                var regex = new Regex(@"[A-Za-z]+\b|#?\$[0-9A-Fa-f]{1,4}(?:,[XY])?|[A-Za-z_][A-Za-z0-9_]*:?");
+                MatchCollection matches = regex.Matches(line);
 
-                foreach (string token in tokens)
+                foreach (Match match in matches)
                 {
-                    if (string.IsNullOrWhiteSpace(token)) continue;
+                    string token = match.Value;
+                    int tokenStart = lineStart + match.Index;
 
                     string upper = token.ToUpper();
 
                     // Instruções
                     if (instrucoesReconhecidas.Contains(upper))
                     {
-                        txtCode.Select(lineStart + offset, token.Length);
+                        txtCode.Select(tokenStart, token.Length);
                         txtCode.SelectionColor = Color.Blue;
                     }
 
+                    // Diretivas
                     else if (diretivasReconhecidas.Contains(upper))
                     {
-                        txtCode.Select(lineStart + offset, token.Length);
+                        txtCode.Select(tokenStart, token.Length);
                         txtCode.SelectionColor = Color.MediumPurple;
                     }
 
-                    // Valores imediatos ou hexadecimais
-                    else if (token.StartsWith("#$") || token.StartsWith("$"))
+                    // Endereços, imediatos e endereços com vírgula
+                    else if (Regex.IsMatch(token, @"^#?\$[0-9A-Fa-f]{1,4}(?:,[XY])?$"))
                     {
-                        txtCode.Select(lineStart + offset, token.Length);
+                        txtCode.Select(tokenStart, token.Length);
                         txtCode.SelectionColor = Color.ForestGreen;
                     }
 
-                    offset += token.Length + 1;
+                    // Labels (sem os que acabam com :)
+                    else if (token.EndsWith(":"))
+                    {
+                        txtCode.Select(tokenStart, token.Length);
+                        txtCode.SelectionColor = Color.Orange;
+                    }
                 }
 
                 index += line.Length + 1;

@@ -53,7 +53,16 @@ namespace C_6502
             { "STA_IND_Y", 0x91 },
             { "LDA_IND_Y", 0xB1 },
             { "CMP_IND_Y", 0xD1 },
-            { "SBC_IND_Y", 0xF1 }
+            { "SBC_IND_Y", 0xF1 },
+
+            // Zero Page
+            { "ADC_ZPG", 0x65 },
+            { "ADC_ZPG_X", 0x75 },
+
+            // Absoluto
+            { "ADC_ABS", 0x6D },
+            { "ADC_ABS_X", 0x7D },
+            { "ADC_ABS_Y", 0x79 }
         };
 
         private static readonly Dictionary<string, byte> opcode = opcodes;
@@ -162,6 +171,19 @@ namespace C_6502
                             output.Add((byte)(addr & 0xFF));
                             output.Add((byte)(addr >> 8));
                             break;
+                        case "ZPG":
+                            output.Add(Convert.ToByte(operand.Substring(1), 16));
+                            break;
+                        case "ZPG_X":
+                        case "ZPG_Y":
+                            output.Add(Convert.ToByte(operand.Substring(1, 2), 16));
+                            break;
+                        case "ABS_X":
+                        case "ABS_Y":
+                            ushort addrxy = Convert.ToUInt16(operand.Substring(1, 4), 16);
+                            output.Add((byte)(addrxy & 0xFF));
+                            output.Add((byte)(addrxy >> 8));
+                            break;
                         case "REL":
                             int target = labels.ContainsKey(operand) ? labels[operand] : throw new Exception($"Label não encontrado: {operand}");
                             int offset = (target - output.Count - 1);
@@ -225,9 +247,30 @@ namespace C_6502
             if (string.IsNullOrEmpty(operand)) return "";
 
             if (operand.StartsWith("#$")) return "IMM";
-            if (operand.StartsWith("$")) return "ABS";
-            if (operand.StartsWith("(") && operand.EndsWith(",Y")) return "IND_Y";
-            if (operand.StartsWith("(") && operand.Contains(",X")) return "X_IND";
+            if (operand.StartsWith("$"))
+            {
+                if (operand.EndsWith(", X"))
+                {
+                    // Determina se é zero page ou absoluto pelo tamanho do operando
+                    if (operand.Length == 5) // Ex: $44,X
+                        return "ZPG_X";
+                    else
+                        return "ABS_X";
+                }
+                if (operand.EndsWith(", Y"))
+                {
+                    if (operand.Length == 5) // Ex: $44,Y
+                        return "ZPG_Y";
+                    else
+                        return "ABS_Y";
+                }
+                // Zero page puro
+                if (operand.Length == 3) // Ex: $44
+                    return "ZPG";
+                return "ABS";
+            }
+            if (operand.StartsWith("(") && operand.EndsWith(",y")) return "IND_Y";
+            if (operand.StartsWith("(") && operand.Contains(",x")) return "X_IND";
             if (!operand.Contains("$") && !operand.Contains("(")) return "REL";
 
             return ""; // fallback para implícito

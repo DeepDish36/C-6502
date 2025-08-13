@@ -309,13 +309,10 @@ namespace C_6502
 
             for (int i = 0; i < lines.Length; i++)
             {
-                // Verifica se a linha está na lista de erros
-                bool isErrorLine = errorLines.Contains(i);
-                string marker = isErrorLine ? "🔴 " : ""; // Adiciona o marcador apenas se houver erro
-                lineNumbers.AppendText(marker + (i + 1).ToString() + Environment.NewLine);
+                // Sempre mostra só o número da linha
+                lineNumbers.AppendText((i + 1).ToString() + Environment.NewLine);
             }
 
-            // Corrige o caso de linhas vazias (para não aparecer "1" e "2" quando não há texto)
             if (lines.Length == 1 && string.IsNullOrWhiteSpace(lines[0]))
             {
                 lineNumbers.Clear();

@@ -52,3 +52,4 @@ C:\Users\Gomes\Desktop\C-6502\C-6502\obj\Release\C-6502.csproj.CoreCompileInputs
 C:\Users\Gomes\Desktop\C-6502\C-6502\obj\Release\C-6502.csproj.Up2Date
 C:\Users\Gomes\Desktop\C-6502\C-6502\obj\Release\C-6502.exe
 C:\Users\Gomes\Desktop\C-6502\C-6502\obj\Release\C-6502.pdb
+C:\Users\g0mes\Desktop\C-6502\C-6502\obj\Release\C-6502.exe.config

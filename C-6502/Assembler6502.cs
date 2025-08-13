@@ -23,19 +23,49 @@ namespace C_6502
             { "BNE_REL", 0xD0 },
             { "BEQ_REL", 0xF0 },
 
-            // Absolute
-            { "JSR_ABS", 0x20 },
-            { "STA_ABS", 0x8D },
-            { "LDA_ABS", 0xAD },
-
             // Immediate
-            { "LDY_IMM", 0xA0 },
-            { "CPY_IMM", 0xC0 },
-            { "CPX_IMM", 0xE0 },
-            { "LDX_IMM", 0xA2 },
             { "LDA_IMM", 0xA9 },
+            { "LDX_IMM", 0xA2 },
+            { "LDY_IMM", 0xA0 },
+            { "CPX_IMM", 0xE0 },
+            { "CPY_IMM", 0xC0 },
 
-            // (Indirect, X)
+            // Zero Page
+            { "LDA_ZPG", 0xA5 },
+            { "LDA_ZPG_X", 0xB5 },
+            { "STA_ZPG", 0x85 },
+            { "STA_ZPG_X", 0x95 },
+            { "AND_ZPG", 0x25 },
+            { "AND_ZPG_X", 0x35 },
+            { "ORA_ZPG", 0x05 },
+            { "ORA_ZPG_X", 0x15 },
+            { "EOR_ZPG", 0x45 },
+            { "EOR_ZPG_X", 0x55 },
+            { "CMP_ZPG", 0xC5 },
+            { "CMP_ZPG_X", 0xD5 },
+            { "SBC_ZPG", 0xE5 },
+            { "SBC_ZPG_X", 0xF5 },
+            { "LDY_ZPG", 0xA4 },
+            { "LDY_ZPG_X", 0xB4 },
+            { "STY_ZPG", 0x84 },
+            { "STY_ZPG_X", 0x94 },
+            { "CPX_ZPG", 0xE4 },
+            { "CPY_ZPG", 0xC4 },
+            { "BIT_ZPG", 0x24 },
+
+            // Absolute
+            { "LDA_ABS", 0xAD },
+            { "LDA_ABS_X", 0xBD },
+            { "LDA_ABS_Y", 0xB9 },
+            { "STA_ABS", 0x8D },
+            { "STA_ABS_X", 0x9D },
+            { "STA_ABS_Y", 0x99 },
+            { "JSR_ABS", 0x20 },
+            { "ADC_ABS", 0x6D },
+            { "ADC_ABS_X", 0x7D },
+            { "ADC_ABS_Y", 0x79 },
+
+            // (Indirect,X)
             { "ORA_X_IND", 0x01 },
             { "AND_X_IND", 0x21 },
             { "EOR_X_IND", 0x41 },
@@ -45,7 +75,7 @@ namespace C_6502
             { "CMP_X_IND", 0xC1 },
             { "SBC_X_IND", 0xE1 },
 
-            // (Indirect), Y
+            // (Indirect),Y
             { "ORA_IND_Y", 0x11 },
             { "AND_IND_Y", 0x31 },
             { "EOR_IND_Y", 0x51 },
@@ -54,15 +84,6 @@ namespace C_6502
             { "LDA_IND_Y", 0xB1 },
             { "CMP_IND_Y", 0xD1 },
             { "SBC_IND_Y", 0xF1 },
-
-            // Zero Page
-            { "ADC_ZPG", 0x65 },
-            { "ADC_ZPG_X", 0x75 },
-
-            // Absoluto
-            { "ADC_ABS", 0x6D },
-            { "ADC_ABS_X", 0x7D },
-            { "ADC_ABS_Y", 0x79 }
         };
 
         private static readonly Dictionary<string, byte> opcode = opcodes;
@@ -246,18 +267,20 @@ namespace C_6502
         {
             if (string.IsNullOrEmpty(operand)) return "";
 
+            operand = operand.Trim().ToUpper(); // normaliza
+
             if (operand.StartsWith("#$")) return "IMM";
             if (operand.StartsWith("$"))
             {
-                if (operand.EndsWith(", X"))
+                if (operand.EndsWith(",X"))
                 {
-                    // Determina se é zero page ou absoluto pelo tamanho do operando
+                    // Determina se é zero page ou absoluto pelo tamanho do valor
                     if (operand.Length == 5) // Ex: $44,X
                         return "ZPG_X";
                     else
                         return "ABS_X";
                 }
-                if (operand.EndsWith(", Y"))
+                if (operand.EndsWith(",Y"))
                 {
                     if (operand.Length == 5) // Ex: $44,Y
                         return "ZPG_Y";
@@ -269,11 +292,11 @@ namespace C_6502
                     return "ZPG";
                 return "ABS";
             }
-            if (operand.StartsWith("(") && operand.EndsWith(",y")) return "IND_Y";
-            if (operand.StartsWith("(") && operand.Contains(",x")) return "X_IND";
+            if (operand.StartsWith("(") && operand.EndsWith(",Y")) return "IND_Y";
+            if (operand.StartsWith("(") && operand.Contains(",X")) return "X_IND";
             if (!operand.Contains("$") && !operand.Contains("(")) return "REL";
 
-            return ""; // fallback para implícito
+            return ""; // implícito
         }
     }
 }

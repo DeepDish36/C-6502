@@ -84,6 +84,24 @@ namespace C_6502
             { "LDA_IND_Y", 0xB1 },
             { "CMP_IND_Y", 0xD1 },
             { "SBC_IND_Y", 0xF1 },
+
+            // 0x06 a 0xF6 — Instruções de leitura/modificação/escrita Zero Page e Zero Page,X
+            { "ASL_ZPG", 0x06 },
+            { "ASL_ZPG_X", 0x16 },
+            { "ROL_ZPG", 0x26 },
+            { "ROL_ZPG_X", 0x36 },
+            { "LSR_ZPG", 0x46 },
+            { "LSR_ZPG_X", 0x56 },
+            { "ROR_ZPG", 0x66 },
+            { "ROR_ZPG_X", 0x76 },
+            { "STX_ZPG", 0x86 },
+            { "STX_ZPG_Y", 0x96 },
+            { "LDX_ZPG", 0xA6 },
+            { "LDX_ZPG_Y", 0xB6 },
+            { "DEC_ZPG", 0xC6 },
+            { "DEC_ZPG_X", 0xD6 },
+            { "INC_ZPG", 0xE6 },
+            { "INC_ZPG_X", 0xF6 },
         };
 
         private static readonly Dictionary<string, byte> opcode = opcodes;

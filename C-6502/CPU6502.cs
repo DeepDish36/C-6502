@@ -314,6 +314,72 @@ namespace C_6502
                     SBC_ZeroPageX(); 
                     break;
 
+                // Intruções de opcode 0x06 a 0xF6
+                case 0x06: 
+                    ASL_ZeroPage(); 
+                    break;
+                
+                case 0x16: 
+                    ASL_ZeroPageX(); 
+                    break;
+                
+                case 0x26: 
+                    ROL_ZeroPage(); 
+                    break;
+                
+                case 0x36: 
+                    ROL_ZeroPageX(); 
+                    break;
+                
+                case 0x46: 
+                    LSR_ZeroPage(); 
+                    break;
+                
+                case 0x56: 
+                    LSR_ZeroPageX(); 
+                    break;
+                
+                case 0x66: 
+                    ROR_ZeroPage(); 
+                    break;
+                
+                case 0x76: 
+                    ROR_ZeroPageX(); 
+                    break;
+                
+                case 0x86: 
+                    STX_ZeroPage(); 
+                    break;
+                
+                case 0x96: 
+                    STX_ZeroPageY(); 
+                    break;
+                
+                case 0xA6: 
+                    LDX_ZeroPage(); 
+                    break;
+                
+                case 0xB6: 
+                    LDX_ZeroPageY(); 
+                    break;
+                
+                case 0xC6: 
+                    DEC_ZeroPage(); 
+                    break;
+                
+                case 0xD6: 
+                    DEC_ZeroPageX(); 
+                    break;
+                
+                case 0xE6: 
+                    INC_ZeroPage(); 
+                    break;
+                
+                case 0xF6: 
+                    INC_ZeroPageX(); 
+                    break;
+                //
+
                 case 0xA9: // LDA #imediato
                     A = ReadByte(PC++);
                     SetZeroNegativeFlags(A);
@@ -963,6 +1029,168 @@ namespace C_6502
         }
 
         //----------------------------------------------------------------------------------//
+
+        // Instruções 06 até F6
+        public void ASL_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            byte value = ReadByte(addr);
+            // Use the existing helper to set the carry flag
+            SetCarryFlag((value & 0x80) != 0);
+            value <<= 1;
+            WriteByte(addr, value);
+            SetZeroNegativeFlags(value);
+        }
+
+        public void ASL_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            byte value = ReadByte(addr);
+            // Use the existing helper to set the carry flag
+            SetCarryFlag((value & 0x80) != 0);
+            value <<= 1;
+            WriteByte(addr, value);
+            SetZeroNegativeFlags(value);
+        }
+
+        public void ROL_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            byte value = ReadByte(addr);
+            bool oldCarry = GetCarryFlag();
+            SetCarryFlag((value & 0x80) != 0);
+            value = (byte)((value << 1) | (oldCarry ? 1 : 0));
+            WriteByte(addr, value);
+            SetZeroFlag(value == 0);
+            SetNegativeFlag((value & 0x80) != 0);
+        }
+
+        public void ROL_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            byte value = ReadByte(addr);
+            bool oldCarry = GetCarryFlag();
+            SetCarryFlag((value & 0x80) != 0);
+            value = (byte)((value << 1) | (oldCarry ? 1 : 0));
+            WriteByte(addr, value);
+            SetZeroFlag(value == 0);
+            SetNegativeFlag((value & 0x80) != 0);
+        }
+
+        public void LSR_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            byte value = ReadByte(addr);
+            SetCarryFlag((value & 0x01) != 0);
+            value >>= 1;
+            WriteByte(addr, value);
+            SetZeroNegativeFlags(value);
+        }
+
+        public void LSR_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            byte value = ReadByte(addr);
+            SetCarryFlag((value & 0x01) != 0);
+            value >>= 1;
+            WriteByte(addr, value);
+            SetZeroNegativeFlags(value);
+        }
+
+        public void ROR_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            byte value = ReadByte(addr);
+            bool oldCarry = GetCarryFlag();
+            SetCarryFlag((value & 0x01) != 0);
+            value = (byte)((value >> 1) | (oldCarry ? 0x80 : 0));
+            WriteByte(addr, value);
+            SetZeroFlag(value == 0);
+            SetNegativeFlag((value & 0x80) != 0);
+        }
+
+        public void ROR_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            byte value = ReadByte(addr);
+            bool oldCarry = GetCarryFlag();
+            SetCarryFlag((value & 0x01) != 0);
+            value = (byte)((value >> 1) | (oldCarry ? 0x80 : 0));
+            WriteByte(addr, value);
+            SetZeroFlag(value == 0);
+            SetNegativeFlag((value & 0x80) != 0);
+        }
+
+        public void STX_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            WriteByte(addr, X);
+            PC += 2;
+        }
+
+        public void STX_ZeroPageY()
+        {
+            byte addr = (byte)(ReadByte(PC++) + Y);
+            WriteByte(addr, X);
+            PC += 2;
+        }
+
+        public void LDX_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            X = ReadByte(addr);
+            SetZeroFlag(X == 0);
+            SetNegativeFlag((X & 0x80) != 0);
+            PC += 2;
+        }
+
+        public void LDX_ZeroPageY()
+        {
+            byte addr = (byte)(ReadByte(PC++) + Y);
+            X = ReadByte(addr);
+            SetZeroFlag(X == 0);
+            SetNegativeFlag((X & 0x80) != 0);
+            PC += 2;
+        }
+
+        public void DEC_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            byte value = (byte)(ReadByte(addr) - 1);
+            WriteByte(addr, value);
+            SetZeroNegativeFlags(value);
+            PC += 2;
+        }
+
+        public void DEC_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            byte value = (byte)(ReadByte(addr) - 1);
+            WriteByte(addr, value);
+            SetZeroNegativeFlags(value);
+            PC += 2;
+        }
+
+        public void INC_ZeroPage()
+        {
+            byte addr = ReadByte(PC++);
+            byte value = (byte)(ReadByte(addr) + 1);
+            WriteByte(addr, value);
+            SetZeroNegativeFlags(value);
+            PC += 2;
+        }
+
+        public void INC_ZeroPageX()
+        {
+            byte addr = (byte)(ReadByte(PC++) + X);
+            byte value = (byte)(ReadByte(addr) + 1);
+            WriteByte(addr, value);
+            SetZeroNegativeFlags(value);
+            PC += 2;
+        }
+
+        //----------------------------------------------------------------------------------//
+
         //Comandos auxiliares
         // Empilha o valor no stack
         private void PushStack(byte value)
@@ -982,6 +1210,8 @@ namespace C_6502
         void SetNegativeFlag(bool value) => Status = value ? (byte)(Status | 0x80) : (byte)(Status & ~0x80);
 
         void SetCarryFlag(bool value) => Status = value ? (byte)(Status | 0x01) : (byte)(Status & ~0x01);
+
+        bool GetCarryFlag() => (Status & 0x01) != 0;
 
         void SetOverflowFlag(bool value) => Status = value ? (byte)(Status | 0x40) : (byte)(Status & ~0x40);
 

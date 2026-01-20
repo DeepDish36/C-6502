@@ -72,5 +72,5 @@ This project is licensed under **GNU Affero General Public License v3.0**, ensur
 
 ---
 <b>
-  <p align=end>Developed by <i>DeepDish36</i> | © 2025</p>
+  <p align=center>Developed by DeepDish36 | © 2026</p>
 </b>

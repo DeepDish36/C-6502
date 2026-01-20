@@ -14,8 +14,10 @@ namespace C_6502
         // Registos do 6502
         public byte A, X, Y;      // Acumulador e registos X, Y
         public byte SP;           // Stack Pointer
-        public ushort PC;         // Program Counter
+        public ushort PC = 0x0600;         // Program Counter (default $0600)
         public byte Status;       // Flags (N, V, -, B, D, I, Z, C)
+
+
 
         // Memória (64KB)
         public byte[] Memory = new byte[65536];
@@ -24,13 +26,19 @@ namespace C_6502
         public CPU6502()
         {
             Reset();
+
+            // Garante que, ao criar a CPU pela primeira vez, o PC comece em $0600
+            // (útil enquanto o vetor de reset na memória não estiver inicializado)
+            if (PC == 0)
+                PC = 0x0600;
         }
 
         // Reset: Define valores iniciais
         public void Reset()
         {
-            Array.Clear(Memory, 0, Memory.Length);
-            PC = ReadWord(0xFFFC); // Vetor de Reset
+            // Lê o vetor de reset; se ainda não foi definido, usa o endereço padrão $0600
+            ushort resetVector = ReadWord(0xFFFC);
+            PC = resetVector != 0 ? resetVector : (ushort)0x0600;
             SP = 0xFD;
             Status = 0x30; // Bit 5 sempre 1, Bit 2 sempre 1
         }
@@ -1219,6 +1227,7 @@ namespace C_6502
         // Carrega um programa na memória e define o PC
         public void LoadProgram(byte[] program, ushort startAddress = 0x0600)
         {
+            Array.Clear(Memory, 0, Memory.Length);
             for (int i = 0; i < program.Length; i++)
             {
                 ushort addr = (ushort)(startAddress + i);
@@ -1231,7 +1240,15 @@ namespace C_6502
                 }
             }
 
-            PC = startAddress;
+            // Define o vetor de reset para apontar para o início do programa
+            Memory[0xFFFC] = (byte)(startAddress & 0xFF);        // low byte
+            Memory[0xFFFD] = (byte)((startAddress >> 8) & 0xFF); // high byte
+
+            // Atualiza PC a partir do vetor de reset para iniciar o programa carregado
+            PC = ReadWord(0xFFFC);
+
+            // NÃO definir PC aqui
+            // PC = startAddress;
         }
 
         // Empilha um byte no stack

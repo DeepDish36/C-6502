@@ -29,6 +29,7 @@ namespace C_6502
             { "LDY_IMM", 0xA0 },
             { "CPX_IMM", 0xE0 },
             { "CPY_IMM", 0xC0 },
+            { "CMP_IMM", 0xC9 },
 
             // Zero Page
             { "LDA_ZPG", 0xA5 },

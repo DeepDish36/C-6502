@@ -106,6 +106,8 @@ namespace C_6502
             };
             cpu = new CPU6502();
             cpu.OnVideoWrite = AtualizarPixel;
+            // Atualiza a UI com o estado inicial da CPU
+            AtualizarInterface();
         }
 
         private void lineNumbers_Paint(object sender, PaintEventArgs e)
@@ -425,17 +427,15 @@ namespace C_6502
             txtCode.ResumeLayout();
         }
 
-        private void btnAssemble_Click(object sender, EventArgs e)
+        private async void btnAssemble_Click(object sender, EventArgs e)
         {
             txtLog.Clear();
 
             AppendLog("Preprocessing ...");
-            Thread.Sleep(200);
 
             string code = txtCode.Text.Trim();
 
             AppendLog("Indexing labels ...");
-            Thread.Sleep(200);
 
             if (string.IsNullOrWhiteSpace(code))
             {
@@ -445,28 +445,34 @@ namespace C_6502
                 return;
             }
 
-            AppendLog("Found 0 labels.");
+            AppendLog("Found labels.");
             AppendLog("Assembling code ...");
 
             try
             {
-                // Usa o assembler real
-                byte[] assembledProgram = Assembler6502.Assemble(code);
+                // trabalho pesado fora da UI thread
+                byte[] assembledProgram = await Task.Run(() =>
+                {
+                    return Assembler6502.Assemble(code);
+                });
 
+                // de volta à UI thread
                 assembledBytes = assembledProgram;
 
                 cpu.Reset();
                 cpu.LoadProgram(assembledProgram, 0x0600);
 
-                programLength = assembledProgram.Length; // Guarda quantos bytes tem o programa
+                // Atualiza a interface para mostrar o novo PC após carregar o programa
+                AtualizarInterface();
+
+                programLength = assembledProgram.Length;
 
                 AppendLog($"Code assembled successfully, {assembledProgram.Length} bytes.");
                 AppendLog("Ready to run.");
 
-                // Ativa os botões se correu bem
                 btnAssemble.Enabled = false;
                 btnRun.Enabled = true;
-                btnStep.Enabled = chkDebug.Checked; // só se debug estiver ativo
+                btnStep.Enabled = chkDebug.Checked;
                 btnJumpTo.Enabled = chkDebug.Checked;
                 btnReset.Enabled = true;
                 btnDisassemble.Enabled = true;
@@ -476,7 +482,6 @@ namespace C_6502
             {
                 AppendLog($"**Syntax Error: {ex.Message}**");
 
-                // Se deu erro, desativa tudo menos o Assemble
                 btnRun.Enabled = false;
                 btnStep.Enabled = false;
                 btnJumpTo.Enabled = false;

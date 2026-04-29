@@ -4,8 +4,6 @@
 The project was inspired by the tools available on [easy6502](https://skilldrick.github.io/easy6502/) and [txt3.de](txt3.de), adapting and expanding their functionalities for a new educational approach.
 ### Download
 The latest version can be downloaded [here](https://github.com/DeepDish36/C-6502/releases/latest).
-<br>
-[Source Code](https://github.com/DeepDish36/C-6502)
 
 ### How to Contribute
 ```bash
